@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floret College Entrance Exam</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --primary: #285B8B; 
+            --secondary: #573C27; 
+            --accent: #E85D4E; 
+            --bg-color: #f4f7f6;
+            --surface: #ffffff;
+            --text: #333333;
+            --text-light: #777777;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            margin: 20px;
+        }
+
+        header {
+            padding: 20px 30px;
+            background: var(--surface);
+            border-bottom: 2px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header img {
+            height: 100px; /* Increased height */
+            max-width: 250px; /* Prevents it from getting too wide on small screens */
+            object-fit: contain; /* Ensures the logo doesn't stretch or warp */
+        }
+
+        .timer-badge {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 1.1em;
+            display: none;
+        }
+
+        .section {
+            padding: 40px;
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        h2 { color: var(--primary); margin-top: 0; }
+        p.subtitle { color: var(--text-light); margin-bottom: 30px; }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9em;}
+        input[type="text"], input[type="tel"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+
+        /* Checkbox Styling */
+        .checkbox-group {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            background: #fff3ed;
+            padding: 15px;
+            border-left: 4px solid var(--accent);
+            border-radius: 6px;
+        }
+        .checkbox-group input {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            font-size: 0.85em;
+            font-weight: 400;
+            line-height: 1.5;
+            color: var(--text);
+            margin: 0;
+            cursor: pointer;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+        button:hover { background-color: #1a4269; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        .btn-secondary { background-color: var(--text-light); width: auto; }
+        .btn-secondary:hover { background-color: #555; }
+        .btn-submit { background-color: var(--accent); }
+        .btn-submit:hover { background-color: #c9493a; }
+
+        /* Exam Interface */
+        .exam-layout { display: flex; gap: 30px; }
+        @media (max-width: 768px) {
+            .exam-layout { flex-direction: column-reverse; }
+        }
+
+        .main-panel { flex: 2; }
+        .side-panel { flex: 1; background: #f9f9f9; padding: 20px; border-radius: 12px; height: fit-content;}
+
+        .question-header { font-size: 1.2em; font-weight: 600; margin-bottom: 20px; }
+        
+        .option-label {
+            display: block;
+            padding: 15px;
+            margin-bottom: 12px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .option-label:hover { border-color: var(--primary); }
+        .option-label input { display: none; }
+        .option-label.selected {
+            background: #e3f2fd;
+            border-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .nav-buttons button { width: auto; }
+
+        /* Question Grid */
+        .grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .grid-btn {
+            width: 35px; height: 35px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background: white;
+            cursor: pointer;
+            font-size: 0.8em;
+            padding: 0;
+            color: var(--text);
+        }
+        .grid-btn.answered { background: var(--primary); color: white; border-color: var(--primary); }
+        .grid-btn.active-q { border: 2px solid var(--accent); font-weight: bold; }
+
+        .loading { display: none; text-align: center; font-weight: bold; color: var(--primary); }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <img src="logo.jpg" alt="Floret College Logo">
+        <div class="timer-badge" id="timerDisplay">01:30:00</div>
+    </header>
+
+    <div id="regSection" class="section active">
+        <h2>Entrance Examination Portal</h2>
+        <p class="subtitle">Please enter your details to begin. The exam is 90 minutes long. Ensure you do not switch tabs or exit full-screen mode during the exam, as it will auto-submit your answers.</p>
+        
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="studentName" required placeholder="Enter your full name">
+        </div>
+        
+        <div class="form-group">
+            <label>Contact Number</label>
+            <input type="tel" id="studentContact" required placeholder="Enter your 10-digit number" maxlength="15">
+        </div>
+
+        <div class="form-group">
+            <label>Aadhaar Card No</label>
+            <input type="text" id="studentAadhaar" required placeholder="Enter your 12-digit Aadhaar number" maxlength="12">
+        </div>
+        
+        <div class="form-group">
+            <label>Branch Applied For</label>
+            <select id="studentBranch">
+                <option value="Pune">Pune</option>
+                <option value="Ratnagiri">Ratnagiri</option>
+                <option value="Kankavli">Kankavli</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Baramati">Baramati</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Course Opted For</label>
+            <select id="studentCourse">
+                <option value="Interior Design">Interior Design</option>
+                <option value="Fashion Design">Fashion Design</option>
+            </select>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="termsCheck">
+            <label for="termsCheck">
+                <strong>Term & Condition:</strong> If you score 60% or above in the Entrance Examination, you must complete your Enrollment / Registration / Admission process on the same day. Failure to do so will attract an Examination Fee of ₹999/-. This fee is not applicable if you do not qualify / fail in the examination.
+            </label>
+        </div>
+
+        <button onclick="startExam()">Proceed to Exam</button>
+    </div>
+
+    <div id="examSection" class="section">
+        <div class="exam-layout">
+            <div class="main-panel">
+                <div class="question-header">
+                    <span id="qNumber">Question 1</span>/50
+                    <div style="font-size: 0.8em; color: var(--text-light); margin-top:5px;" id="qSection">Section Name</div>
+                </div>
+                <div id="questionText" style="font-size: 1.1em; margin-bottom: 20px;"></div>
+                <div id="optionsContainer"></div>
+
+                <div class="nav-buttons">
+                    <button class="btn-secondary" id="prevBtn" onclick="navigate(-1)">Previous</button>
+                    <button id="nextBtn" onclick="navigate(1)">Next Question</button>
+                </div>
+            </div>
+            <div class="side-panel">
+                <h4>Question Palette</h4>
+                <p style="font-size: 0.8em; color: var(--text-light);">Click to jump to a question. Answers auto-save when selected.</p>
+                <div class="grid" id="questionGrid"></div>
+                <button class="btn-submit" style="width: 100%; margin-top: 30px;" onclick="confirmSubmit()">Submit Exam</button>
+                <p class="loading" id="loadingMsg">Submitting responses...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultSection" class="section">
+        <h2>Exam Submitted Successfully</h2>
+        <p class="subtitle">Thank you for completing the Floret College Entrance Exam.</p>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
+            <h1 style="font-size: 3em; color: var(--primary); margin: 10px 0;" id="finalScore">0/50</h1>
+            <p style="font-size: 1.2em; font-weight: bold; color: var(--secondary);" id="finalPercentage">0%</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- GOOGLE SHEETS WEB APP URL ---
+    const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbwd7-l2N8RL-9nRKVMQiumROK8jCLu77fLCnMST1dinBiFsaqRnQ1vic0CvSIyy8qJU/exec";
+
+    const questions = [
+        // Section A
+        { sec: "Visual Aesthetics & Color Theory", q: "What are the three primary colors in art?", options: ["Red, Green, Blue", "Red, Yellow, Blue", "Orange, Green, Purple", "Cyan, Magenta, Yellow"], ans: 1 },
+        { sec: "Visual Aesthetics & Color Theory", q: "Mixing yellow and blue in equal proportions creates which color?", options: ["Orange", "Purple", "Green", "Brown"], ans: 2 },
+        { sec: "Visual Aesthetics & Color Theory", q: "Which of the following is considered a 'cool' color?", options: ["Red", "Orange", "Blue", "Yellow"], ans: 2 },
+        { sec: "Visual Aesthetics & Color Theory", q: "The term 'monochromatic' refers to a design that uses:", options: ["All colors of the rainbow", "Black and white only", "Various shades and tints of a single color", "Fluorescent colors"], ans: 2 },
+        { sec: "Visual Aesthetics & Color Theory", q: "How many colors are there in a standard rainbow?", options: ["5", "6", "7", "8"], ans: 2 },
+        { sec: "Visual Aesthetics & Color Theory", q: "Which color is universally associated with nature, growth, and eco-friendliness?", options: ["Red", "Green", "Purple", "Grey"], ans: 1 },
+        { sec: "Visual Aesthetics & Color Theory", q: "In pigment (paint), the complete absence of light and color absorption results in:", options: ["White", "Black", "Grey", "Transparent"], ans: 1 },
+        { sec: "Visual Aesthetics & Color Theory", q: "If you mix white paint into red paint, what color do you get?", options: ["Burgundy", "Magenta", "Pink", "Peach"], ans: 2 },
+        { sec: "Visual Aesthetics & Color Theory", q: "Which color is most commonly used to signify warning or danger?", options: ["Blue", "Green", "Red", "White"], ans: 2 },
+        { sec: "Visual Aesthetics & Color Theory", q: "Which of the following color combinations provides the highest visual contrast?", options: ["Dark blue and light blue", "Black and white", "Yellow and orange", "Grey and silver"], ans: 1 },
+        
+        // Section B
+        { sec: "Spatial Awareness & Shapes", q: "What is the 3-dimensional version of a square?", options: ["Sphere", "Pyramid", "Cube", "Cylinder"], ans: 2 },
+        { sec: "Spatial Awareness & Shapes", q: "How many sides does a hexagon have?", options: ["5", "6", "7", "8"], ans: 1 },
+        { sec: "Spatial Awareness & Shapes", q: "Which geometric shape is considered the most structurally stable in architecture?", options: ["Circle", "Rectangle", "Triangle", "Oval"], ans: 2 },
+        { sec: "Spatial Awareness & Shapes", q: "If you look straight down at a standard standing cylinder, what shape do you see?", options: ["Rectangle", "Square", "Oval", "Circle"], ans: 3 },
+        { sec: "Spatial Awareness & Shapes", q: "What is the standard, most commonly used paper size for everyday printing?", options: ["A2", "A3", "A4", "A5"], ans: 2 },
+        { sec: "Spatial Awareness & Shapes", q: "A continuous, moving point in space creates a:", options: ["Shape", "Line", "Form", "Texture"], ans: 1 },
+        { sec: "Spatial Awareness & Shapes", q: "In a right-angled triangle, the longest side is called the:", options: ["Base", "Perpendicular", "Hypotenuse", "Radius"], ans: 2 },
+        { sec: "Spatial Awareness & Shapes", q: "Which of the following English alphabet letters is perfectly symmetrical vertically?", options: ["P", "Q", "A", "R"], ans: 2 },
+        { sec: "Spatial Awareness & Shapes", q: "A standard rectangular room has how many primary corners on the floor plan?", options: ["3", "4", "6", "8"], ans: 1 },
+        { sec: "Spatial Awareness & Shapes", q: "The shape of a standard brick used in construction is a:", options: ["Cube", "Cylinder", "Cuboid", "Pyramid"], ans: 2 },
+        
+        // Section C
+        { sec: "Everyday Observation & Materials", q: "Which fabric is universally recommended for wearing during hot summer weather?", options: ["Wool", "Silk", "Cotton", "Velvet"], ans: 2 },
+        { sec: "Everyday Observation & Materials", q: "What is the primary raw material used to manufacture glass?", options: ["Plastic", "Sand (Silica)", "Wood pulp", "Clay"], ans: 1 },
+        { sec: "Everyday Observation & Materials", q: "Which tool is absolutely essential for a tailor to take human body measurements?", options: ["Ruler", "Measuring Tape", "Compass", "T-Square"], ans: 1 },
+        { sec: "Everyday Observation & Materials", q: "A material that allows light to pass through it completely is called:", options: ["Opaque", "Translucent", "Transparent", "Reflective"], ans: 2 },
+        { sec: "Everyday Observation & Materials", q: "Which of these materials is the most eco-friendly and biodegradable for making shopping bags?", options: ["Nylon", "Jute", "Polythene", "Polyester"], ans: 1 },
+        { sec: "Everyday Observation & Materials", q: "What is commonly applied to wooden furniture to protect it and give it a glossy finish?", options: ["Varnish / Polish", "Water", "Acid", "Chalk"], ans: 0 },
+        { sec: "Everyday Observation & Materials", q: "What is the defining characteristic of material used for raincoats?", options: ["Breathable", "Waterproof", "Absorbent", "Heavy"], ans: 1 },
+        { sec: "Everyday Observation & Materials", q: "What pattern consists of alternating squares of two different colors?", options: ["Polka dot", "Stripes", "Chevron", "Checkerboard"], ans: 3 },
+        { sec: "Everyday Observation & Materials", q: "A mirror works primarily on the principle of:", options: ["Refraction", "Absorption", "Reflection", "Dispersion"], ans: 2 },
+        { sec: "Everyday Observation & Materials", q: "Which of these metals is liquid at room temperature?", options: ["Iron", "Gold", "Mercury", "Silver"], ans: 2 },
+
+        // Section D
+        { sec: "Interior & Fashion Basics", q: "In design and architecture, a 'blueprint' traditionally uses which two colors?", options: ["Black and White", "Blue and White", "Red and Yellow", "Green and Black"], ans: 1 },
+        { sec: "Interior & Fashion Basics", q: "What is the primary purpose of a mannequin?", options: ["To test fabric strength", "To measure room sizes", "To display and fit clothing in 3D", "To sew garments together"], ans: 2 },
+        { sec: "Interior & Fashion Basics", q: "In spatial planning, which direction does the sun naturally rise from?", options: ["North", "South", "East", "West"], ans: 2 },
+        { sec: "Interior & Fashion Basics", q: "The durable cotton twill textile known as 'Denim' is most famously used to make:", options: ["Wedding gowns", "Jeans", "Curtains", "Sweaters"], ans: 1 },
+        { sec: "Interior & Fashion Basics", q: "Which design trick is most commonly used by interior designers to make a small, cramped room appear larger?", options: ["Painting the walls black", "Adding large mirrors", "Putting in bulky furniture", "Removing all lighting"], ans: 1 },
+        { sec: "Interior & Fashion Basics", q: "A wardrobe or closet is a piece of furniture primarily designed for storing:", options: ["Books", "Utensils", "Clothes and apparel", "Tools"], ans: 2 },
+        { sec: "Interior & Fashion Basics", q: "A flat, 2D drawing showing the exterior face or front view of a building is called an:", options: ["Elevation", "Floor Plan", "Section", "Perspective"], ans: 0 },
+        { sec: "Interior & Fashion Basics", q: "Bandhani, Ikat, and Kalamkari are traditional Indian terms related to:", options: ["Types of cement", "Wood carving techniques", "Textile prints and dyeing", "Glassmaking"], ans: 2 },
+        { sec: "Interior & Fashion Basics", q: "The art of decorating fabric using a needle to apply thread or yarn is called:", options: ["Knitting", "Weaving", "Embroidery", "Printing"], ans: 2 },
+        { sec: "Interior & Fashion Basics", q: "The structural top surface of a room that covers the space from above is called the:", options: ["Floor", "Wall", "Ceiling", "Window"], ans: 2 },
+
+        // Section E
+        { sec: "Logical Reasoning & Aptitude", q: "Find the odd one out:", options: ["Chair", "Table", "Sofa", "Apple"], ans: 3 },
+        { sec: "Logical Reasoning & Aptitude", q: "Complete the relationship pair — Pen is to Paper as Brush is to:", options: ["Paint", "Canvas", "Palette", "Easel"], ans: 1 },
+        { sec: "Logical Reasoning & Aptitude", q: "What comes next in the number series: 2, 4, 6, 8, __?", options: ["9", "10", "11", "12"], ans: 1 },
+        { sec: "Logical Reasoning & Aptitude", q: "Find the odd one out based on material origins:", options: ["Cotton", "Silk", "Wool", "Plastic"], ans: 3 },
+        { sec: "Logical Reasoning & Aptitude", q: "Complete the relationship pair — Architect is to Building as Fashion Designer is to:", options: ["Ramp", "Model", "Apparel / Clothes", "Scissors"], ans: 2 },
+        { sec: "Logical Reasoning & Aptitude", q: "A 'Logo' is primarily created to visually represent a:", options: ["Brand or Company identity", "Government law", "Mathematical formula", "Geographic map"], ans: 0 },
+        { sec: "Logical Reasoning & Aptitude", q: "Find the odd one out among these colors:", options: ["Red", "Blue", "Yellow", "Green"], ans: 3 },
+        { sec: "Logical Reasoning & Aptitude", q: "What comes next in the sequence: Triangle (3 sides), Square (4 sides), Pentagon (5 sides), ___?", options: ["Octagon", "Hexagon", "Heptagon", "Circle"], ans: 1 },
+        { sec: "Logical Reasoning & Aptitude", q: "Which hand tool is best suited for cutting thick paper or cardboard with precision?", options: ["Spoon", "Craft Knife / Paper Cutter", "Hammer", "Pliers"], ans: 1 },
+        { sec: "Logical Reasoning & Aptitude", q: "In design, a 'prototype' refers to:", options: ["The final product sold in stores", "A first, preliminary model or draft", "The price tag of an item", "The instruction manual"], ans: 1 }
+    ];
+
+    let currentQ = 0;
+    let answers = new Array(50).fill(null);
+    let timeLeft = 90 * 60; // 90 minutes
+    let timerInterval;
+    let examActive = false;
+    let studentData = {};
+
+    function startExam() {
+        const name = document.getElementById("studentName").value;
+        const contact = document.getElementById("studentContact").value;
+        const aadhaar = document.getElementById("studentAadhaar").value; // New Value
+        const branch = document.getElementById("studentBranch").value;
+        const course = document.getElementById("studentCourse").value;
+        const termsChecked = document.getElementById("termsCheck").checked; // Checkbox state
+
+        // 1. Basic Field Validation
+        if(!name.trim() || !contact.trim() || !aadhaar.trim()) { 
+            alert("Please fill in your Full Name, Contact Number, and Aadhaar Number to proceed."); 
+            return; 
+        }
+
+        // 2. Aadhaar Validation (Must be exactly 12 digits)
+        if(!/^\d{12}$/.test(aadhaar.trim())) {
+            alert("Please enter a valid 12-digit Aadhaar Card Number.");
+            return;
+        }
+
+        // 3. Terms & Conditions Validation
+        if(!termsChecked) {
+            alert("You must agree to the Terms & Conditions to proceed to the exam.");
+            return;
+        }
+        
+        studentData = { name, contact, aadhaar, branch, course };
+
+        try {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Fullscreen mode blocked, continuing anyway.");
+                });
+            }
+        } catch (error) {
+            console.log("Fullscreen API not supported.");
+        }
+
+        document.getElementById("regSection").classList.remove("active");
+        document.getElementById("examSection").classList.add("active");
+        document.getElementById("timerDisplay").style.display = "block";
+        
+        examActive = true;
+        buildGrid();
+        loadQuestion(0);
+        startTimer();
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+    }
+
+    function handleVisibilityChange() {
+        if (document.visibilityState === "hidden" && examActive) {
+            alert("Warning: You switched tabs! The exam will now be automatically submitted.");
+            submitExam();
+        }
+    }
+
+    function buildGrid() {
+        const grid = document.getElementById("questionGrid");
+        grid.innerHTML = "";
+        for(let i=0; i<50; i++) {
+            const btn = document.createElement("button");
+            btn.className = "grid-btn";
+            btn.innerText = i + 1;
+            btn.onclick = () => loadQuestion(i);
+            btn.id = "grid-btn-" + i;
+            grid.appendChild(btn);
+        }
+    }
+
+    function loadQuestion(index) {
+        currentQ = index;
+        const qData = questions[index];
+        
+        document.getElementById("qNumber").innerText = `Question ${index + 1}`;
+        document.getElementById("qSection").innerText = qData.sec;
+        document.getElementById("questionText").innerText = qData.q;
+
+        const optionsContainer = document.getElementById("optionsContainer");
+        optionsContainer.innerHTML = "";
+
+        qData.options.forEach((opt, i) => {
+            const label = document.createElement("label");
+            label.className = "option-label" + (answers[index] === i ? " selected" : "");
+            
+            const radio = document.createElement("input");
+            radio.type = "radio";
+            radio.name = "option";
+            radio.value = i;
+            if(answers[index] === i) radio.checked = true;
+            
+            radio.onchange = () => selectOption(index, i);
+
+            label.appendChild(radio);
+            label.appendChild(document.createTextNode(opt));
+            optionsContainer.appendChild(label);
+        });
+
+        document.getElementById("prevBtn").disabled = currentQ === 0;
+        document.getElementById("nextBtn").innerText = currentQ === 49 ? "Review Answers" : "Next Question";
+        
+        document.querySelectorAll(".grid-btn").forEach(btn => btn.classList.remove("active-q"));
+        document.getElementById("grid-btn-" + index).classList.add("active-q");
+    }
+
+    function selectOption(qIndex, optIndex) {
+        answers[qIndex] = optIndex;
+        document.getElementById("grid-btn-" + qIndex).classList.add("answered");
+        
+        const labels = document.querySelectorAll(".option-label");
+        labels.forEach((lbl, i) => {
+            if(i === optIndex) lbl.classList.add("selected");
+            else lbl.classList.remove("selected");
+        });
+    }
+
+    function navigate(step) {
+        let newIndex = currentQ + step;
+        if(newIndex >= 0 && newIndex < 50) {
+            loadQuestion(newIndex);
+        }
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            if(timeLeft <= 0) {
+                clearInterval(timerInterval);
+                submitExam();
+            } else {
+                timeLeft--;
+                let h = Math.floor(timeLeft / 3600).toString().padStart(2, '0');
+                let m = Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0');
+                let s = (timeLeft % 60).toString().padStart(2, '0');
+                document.getElementById("timerDisplay").innerText = `${h}:${m}:${s}`;
+            }
+        }, 1000);
+    }
+
+    function confirmSubmit() {
+        if(confirm("Are you sure you want to submit the exam? You cannot undo this action.")) {
+            submitExam();
+        }
+    }
+
+    function submitExam() {
+        examActive = false;
+        clearInterval(timerInterval);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        document.getElementById("loadingMsg").style.display = "block";
+
+        let score = 0;
+        answers.forEach((ans, index) => {
+            if(ans !== null) { 
+                if(index < 35) {
+                    score++; 
+                } else {
+                    if(ans === questions[index].ans) score++; 
+                }
+            }
+        });
+
+        const percentage = ((score / 50) * 100).toFixed(2);
+        
+        const payload = {
+            Name: studentData.name,
+            Contact: studentData.contact,
+            Aadhaar: studentData.aadhaar, // Included new data
+            Branch: studentData.branch,
+            Course: studentData.course, 
+            Score: score,
+            Percentage: percentage,
+            Answers: JSON.stringify(answers)
+        };
+
+        fetch(GOOGLE_SHEETS_URL, {
+            method: "POST",
+            mode: "no-cors", 
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        }).then(() => showResult(score, percentage)).catch(() => showResult(score, percentage));
+    }
+
+    function showResult(score, percentage) {
+        if (document.exitFullscreen && document.fullscreenElement) {
+            document.exitFullscreen().catch(e => console.log(e));
+        }
+
+        document.getElementById("examSection").classList.remove("active");
+        document.getElementById("resultSection").classList.add("active");
+        document.getElementById("timerDisplay").style.display = "none";
+        
+        document.getElementById("finalScore").innerText = `${score} / 50`;
+        document.getElementById("finalPercentage").innerText = `${percentage}%`;
+    }
+</script>
+</body>
+</html>
